@@ -2,62 +2,66 @@
 
 English | [中文版](./README.zh-CN.md)
 
-**CURE** is a lightweight Python tool designed for researchers and PhD students to automatically detect "ghost references"—entries listed in your bibliography that are never actually cited in the main body of your document.
+**CURE** (Check Uncited REferences) is a streamlined Python tool designed to optimize academic manuscripts by identifying "ghost references"—entries that persist in a bibliography despite being omitted or removed from the main body text during the revision process.
 
-## ❓ The "Why" (Use Case)
+## ❓ Context & Motivation (Use Case)
 
-In modern research, we often collaborate across different formats. While Zotero-native Markdown or LaTeX workflows maintain perfect synchronization, **collaborating in Microsoft Word** often breaks citation links during multiple iterations of manual editing and format conversion. 
+Contemporary research often necessitates collaboration across heterogeneous document formats. While Zotero and similar ecosystems offer robust synchronization within native Markdown or LaTeX environments, **iterative collaboration in Microsoft Word** frequently destabilizes these citation links.
 
-When converting Word or PDF drafts back to Markdown for final assembly or submission, citations become "static text," making it easy to accidentally delete a paragraph while leaving its corresponding bibliography entry behind. **CURE** is specifically built to solve this "conversion-artifact" problem by using semantic pattern matching instead of live software links.
+When Word or PDF drafts are converted back to Markdown for final synthesis or submission, citations are typically rendered as "static text." In the course of intensive revisions, body paragraphs may be deleted while their corresponding entries remain in the reference list. **CURE** addresses this structural vulnerability by employing semantic pattern matching (Semantic Fingerprinting) rather than software-dependent links, ensuring a lean and consistent final manuscript.
 
-## 🔄 Recommended Workflow
+## 🔄 Recommended Pipeline
 
-For the best results, we recommend a "Source to Clean" workflow based on your input format:
+To ensure manuscript integrity, we recommend the following "Legacy-to-Clean" workflow:
 
-### 1. Format Conversion
--   **For Word (`.docx`)**: Use [Pandoc](https://pandoc.org/) to convert into Markdown.
+### 1. High-Fidelity Conversion
+-   **For Word Documents (`.docx`)**: Utilize [Pandoc](https://pandoc.org/) for a robust transition from Word to Markdown.
     ```bash
-    pandoc your_paper.docx -o your_paper.md
+    pandoc manuscript.docx -o manuscript.md
     ```
--   **For PDF (`.pdf`)**: Using standard conversion often yields poor results for complex academic layouts. We recommend using high-quality OCR tools like **[obsidian-marker](https://github.com/l3-n0x/obsidian-marker)**, which leverages **[Mistral AI](https://mistral.ai/)**'s powerful OCR capabilities to preserve structural integrity during the PDF-to-Markdown process.
+-   **For PDF Documents (`.pdf`)**: Standard conversion methods often compromise complex academic layouts. We recommend **[obsidian-marker](https://github.com/l3-n0x/obsidian-marker)**, which leverages **[Mistral AI](https://mistral.ai/)**'s advanced OCR capabilities to extract semantic structures and bibliography entries with high precision.
 
-### 2. Clean Up with CURE
-Once you have your `.md` file, run **CURE** to identify and remove all uncited ghost references.
+### 2. Semantic Verification with CURE
+Upon generating the `.md` file, execute **CURE** to audit the bibliography and isolate all uncited ghost entries.
 
 ## 🚀 Quick Start
 
 ### Installation
 
-No installation required. Just download `check_uncited.py` and you are good to go.
+No installation required. Download `check_uncited.py` and run it via Python 3.
 
-### Usage
+### Basic Usage
 
-Run the tool from your terminal by specifying your input Markdown file:
+Specify your target Markdown file via the command line:
 
 ```bash
-python3 check_uncited.py -i "your_thesis_draft.md"
+python3 check_uncited.py -i "your_paper.md"
 ```
 
-### Options
+### CLI Options
 
 | Flag | Long Flag | Description | Default |
 | :--- | :--- | :--- | :--- |
-| `-i` | `--input` | **(Required)** Path to your input Markdown file. | N/A |
-| `-o` | `--output` | Path to save the uncited references report. | `uncited_report.md` |
-| `-h` | `--help` | Show the help message and exit. | N/A |
+| `-i` | `--input` | **(Required)** Path to the target Markdown file. | N/A |
+| `-o` | `--output` | Path for the generated validation report. | `uncited_report.md` |
+| `-h` | `--help` | Display the help manual. | N/A |
 
-## 📊 How It Works
+## 📊 Underlying Mechanism (Heuristic Scoring)
 
-CURE doesn't just look for keywords. It uses a **Heuristic Scoring** approach:
-1.  It scans the document for potential bibliography headers.
-2.  It evaluates each candidate by checking the **density** of reference-like patterns in the following lines.
-3.  It selects the true bibliography section and extracts "Fingerprints" (Author surnames + Year).
-4.  It performs a cross-line regex search in the body text to verify each fingerprint.
+CURE goes beyond simple keyword searching by implementing a **Heuristic Scoring** logic to ensure robust detection:
+1.  **Section Identification**: Scans the document for potential bibliography headers across multilingual contexts.
+2.  **Density Evaluation**: Scores candidates based on the "entry density" of subsequent lines to accurately identify the bibliography's starting point.
+3.  **Fingerprint Extraction**: Isolates the true reference block and extracts unique "Fingerprints" (Author surname + Publication year).
+4.  **Cross-Context Matching**: Executes multi-line regex matching throughout the body text to confirm the presence of citations.
 
-## 📝 Output
+## 📝 Deliverables
 
-The tool generates a Markdown report (`uncited_report.md`) listing every reference that lacks a corresponding citation in the body, complete with original text for easy identification.
+The tool produces a detailed Markdown report (`uncited_report.md`) listing all references lacking substantive body support, preserving original entries for easy cross-referencing.
 
-## 🤝 Contributing
+## 📖 Technical Documentation
 
-Feel free to fork this project, report bugs, or submit pull requests to help improve the detection logic!
+For developers or researchers interested in the underlying heuristics and matching logic, please refer to the **[project_handover.md](./project_handover.md)** file. It provides an in-depth explanation of the heuristic scoring algorithm, fingerprint extraction, and technical implementation details.
+
+## 🤝 Contribution
+
+We welcome forks, issues, and pull requests to further refine the detection algorithms and support additional citation formats.
