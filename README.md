@@ -4,13 +4,25 @@ English | [中文版](./README.zh-CN.md)
 
 **CURE** is a lightweight Python tool designed for researchers and PhD students to automatically detect "ghost references"—entries listed in your bibliography that are never actually cited in the main body of your document.
 
-## 🌟 Features
+## ❓ The "Why" (Use Case)
 
--   **Dual-Language Support**: Works seamlessly with both English and Chinese academic documents.
--   **Intelligent Splitting**: Uses a heuristic scoring algorithm to accurately separate the main text from the bibliography, even if "References" appears in the Table of Contents.
--   **Universal Parsing**: Supports both numbered bibliography (e.g., `[1]`, `1.`) and unnumbered APA-style lists (e.g., `Aghion, P. (2013)`).
--   **Fuzzy Matching**: Detects citations even if they are split across multiple lines or use various shorthand formats (e.g., `Author et al., 2020`).
--   **Zero Dependencies**: Written in pure Python 3 using only standard libraries.
+In modern research, we often collaborate across different formats. While Zotero-native Markdown or LaTeX workflows maintain perfect synchronization, **collaborating in Microsoft Word** often breaks citation links during multiple iterations of manual editing and format conversion. 
+
+When converting Word or PDF drafts back to Markdown for final assembly or submission, citations become "static text," making it easy to accidentally delete a paragraph while leaving its corresponding bibliography entry behind. **CURE** is specifically built to solve this "conversion-artifact" problem by using semantic pattern matching instead of live software links.
+
+## 🔄 Recommended Workflow
+
+For the best results, we recommend a "Source to Clean" workflow based on your input format:
+
+### 1. Format Conversion
+-   **For Word (`.docx`)**: Use [Pandoc](https://pandoc.org/) to convert into Markdown.
+    ```bash
+    pandoc your_paper.docx -o your_paper.md
+    ```
+-   **For PDF (`.pdf`)**: Using standard conversion often yields poor results for complex academic layouts. We recommend using high-quality OCR tools like **[obsidian-marker](https://github.com/l3-n0x/obsidian-marker)**, which leverages **[Mistral AI](https://mistral.ai/)**'s powerful OCR capabilities to preserve structural integrity during the PDF-to-Markdown process.
+
+### 2. Clean Up with CURE
+Once you have your `.md` file, run **CURE** to identify and remove all uncited ghost references.
 
 ## 🚀 Quick Start
 

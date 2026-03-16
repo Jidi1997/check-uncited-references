@@ -3,6 +3,9 @@
 ## 🗒️ Overview
 This tool is designed to automate the cross-referencing between the "body text" and the "bibliography section" of a Markdown document. It identifies "ghost references"—entries listed in the bibliography that are never cited in the main text.
 
+### Problem Statement: Post-Conversion Artifacts
+In contrast to LaTeX or Zotero-native Markdown workflows where citations are live-linked, collaboration in **Microsoft Word** often results in "static" citations. When converting these legacy documents via tools like **Pandoc**, reference links are lost. During iterative editing, text is often deleted without updating the bibliography. CURE uses semantic fingerprinting (Author + Year) to find these abandoned entries where traditional bibliographic software fails.
+
 ## 🛠️ Core Engineering Logic
 
 ### 1. Heuristic Bibliography Splitting
