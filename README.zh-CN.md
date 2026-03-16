@@ -2,9 +2,9 @@
 
 [English](./README.md) | 中文版
 
-**CURE** (Check Uncited REferences) 是一款专为研究人员与学生开发的轻量级 Python 脚本，旨在精准识别文末参考文献列表中的“冗余文献”/“幽灵文献”（即在正文论述中未被支撑或提及的文献条目）。
+**CURE** (Check Uncited REferences) 是一款专为 **Markdown** 文档内核设计的轻量级 Python 脚本。由于 Markdown 文本具有高度的结构化特征，极易与各类 AI 工具产生深度联动，本工具旨在通过精准识别文末参考文献列表中的“冗余文献”/“幽灵文献”（即在正文论述中未被支撑或提及的文献条目），保障学术文档的严谨性。
 
-## ❓ 应用背景与痛点
+## ❓ 应用背景
 
 在现代学术写作中，多格式间的协作与转换是常态。尽管 Zotero 等工具在原生 Markdown 环境下表现优异，但在**跨平台的 Microsoft Word 复审与迭代**流程中，引用链接极易断裂。
 
@@ -17,12 +17,12 @@
 ### 1. 结构化转换
 -   **Word 稿件 (`.docx`)**：建议使用 [Pandoc](https://pandoc.org/) 实现从 Word 到 Markdown 的结构化转换。
     ```bash
-    pandoc manuscript.docx -o temporary_check.md
+    pandoc manuscript.docx -o manuscript.md
     ```
 -   **PDF 稿件 (`.pdf`)**：考虑到复杂学术排版的特殊性，推荐采用基于 **[Mistral AI](https://mistral.ai/)** 高级 OCR 模型的 **[obsidian-marker](https://github.com/l3-n0x/obsidian-marker)**。该方案能够精准识别文档层级，最大程度保留文献条目的语义完整性。
 
 ### 2. 智能化语义校验
-在获得 Markdown 文件后，通过 **CURE** 运行自动化脚本，以定位并识别所有未引用的“幽灵条目”。
+在获得 `manuscript.md` 文件后，通过 **CURE** 运行自动化脚本：
 
 ## 🚀 快速使用
 
@@ -35,7 +35,7 @@
 使用命令行指定待分析的 Markdown 路径：
 
 ```bash
-python3 check_uncited.py -i "your_manuscript.md"
+python3 check_uncited.py -i "manuscript.md"
 ```
 
 ### 可选参数

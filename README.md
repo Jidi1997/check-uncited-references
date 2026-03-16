@@ -2,7 +2,7 @@
 
 English | [中文版](./README.zh-CN.md)
 
-**CURE** (Check Uncited REferences) is a streamlined Python tool designed to optimize academic manuscripts by identifying "ghost references"—entries that persist in a bibliography despite being omitted or removed from the main body text during the revision process.
+**CURE** (Check Uncited REferences) is a streamlined Python tool specifically designed for **Markdown** documents. Given that Markdown provides an inherently structured and AI-friendly format, CURE leverages this clarity to identify "ghost references"—entries that persist in a bibliography despite being omitted or removed from the main body text.
 
 ## ❓ Context & Motivation (Use Case)
 
@@ -22,7 +22,7 @@ To ensure manuscript integrity, we recommend the following "Legacy-to-Clean" wor
 -   **For PDF Documents (`.pdf`)**: Standard conversion methods often compromise complex academic layouts. We recommend **[obsidian-marker](https://github.com/l3-n0x/obsidian-marker)**, which leverages **[Mistral AI](https://mistral.ai/)**'s advanced OCR capabilities to extract semantic structures and bibliography entries with high precision.
 
 ### 2. Semantic Verification with CURE
-Upon generating the `.md` file, execute **CURE** to audit the bibliography and isolate all uncited ghost entries.
+Upon generating the `manuscript.md` file, execute **CURE** to audit the bibliography:
 
 ## 🚀 Quick Start
 
@@ -35,7 +35,7 @@ No installation required. Download `check_uncited.py` and run it via Python 3.
 Specify your target Markdown file via the command line:
 
 ```bash
-python3 check_uncited.py -i "your_paper.md"
+python3 check_uncited.py -i "manuscript.md"
 ```
 
 ### CLI Options
