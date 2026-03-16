@@ -6,7 +6,7 @@ English | [中文版](./README.zh-CN.md)
 
 ## ❓ Context & Motivation (Use Case)
 
-Contemporary research often necessitates collaboration across heterogeneous document formats. While Zotero and similar ecosystems offer robust synchronization within native Markdown or LaTeX environments, **iterative collaboration in Microsoft Word** frequently destabilizes these citation links.
+Contemporary research often necessitates collaboration across heterogeneous document formats. While Zotero and similar ecosystems offer robust synchronization within native Markdown or $/LaTeX$  environments, **iterative collaboration in Microsoft Word** frequently destabilizes these citation links.
 
 When Word or PDF drafts are converted back to Markdown for final synthesis or submission, citations are typically rendered as "static text." In the course of intensive revisions, body paragraphs may be deleted while their corresponding entries remain in the reference list. **CURE** addresses this structural vulnerability by employing semantic pattern matching (Semantic Fingerprinting) rather than software-dependent links, ensuring a lean and consistent final manuscript.
 
