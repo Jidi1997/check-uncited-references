@@ -6,9 +6,11 @@ English | [中文版](./README.zh-CN.md)
 
 ## ❓ Context & Motivation (Use Case)
 
-Contemporary research often necessitates collaboration across heterogeneous document formats. While Zotero and similar ecosystems offer robust synchronization within native Markdown or $\LaTeX$  environments, **iterative collaboration in Microsoft Word** frequently destabilizes these citation links.
+In modern research, writing often moves between different formats. While tools like Zotero excel at managing citations within Markdown or $\LaTeX$ , the back-and-forth of **collaborative editing in Microsoft Word** can easily break these links.
 
-When Word or PDF drafts are converted back to Markdown for final synthesis or submission, citations are typically rendered as "static text." In the course of intensive revisions, body paragraphs may be deleted while their corresponding entries remain in the reference list. **CURE** addresses this structural vulnerability by employing semantic pattern matching (Semantic Fingerprinting) rather than software-dependent links, ensuring a lean and consistent final manuscript.
+Then, citations in Word often become “static text.” During revisions, you might delete a paragraph but forget to remove its now‑orphaned reference, leaving ghost entries in your bibliography.
+**CURE** solves this. Instead of relying on fragile, app-specific links, it identifies references by their core semantic content, helping you automatically find and remove these redundant citations for a clean, consistent manuscript.
+
 
 ## 🔄 Recommended Pipeline
 
