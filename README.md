@@ -48,13 +48,13 @@ python3 check_uncited.py -i "manuscript.md"
 | `-o` | `--output` | Path for the generated validation report. | `uncited_report.md` |
 | `-h` | `--help` | Display the help manual. | N/A |
 
-## 📊 Underlying Mechanism (Heuristic Scoring)
+## 📊 Underlying Mechanism (Smart Scoring System)
 
-CURE goes beyond simple keyword searching by implementing a **Heuristic Scoring** logic to ensure robust detection:
-1.  **Section Identification**: Scans the document for potential bibliography headers across multilingual contexts.
-2.  **Density Evaluation**: Scores candidates based on the "entry density" of subsequent lines to accurately identify the bibliography's starting point.
-3.  **Fingerprint Extraction**: Isolates the true reference block and extracts unique "Fingerprints" (Author surname + Publication year).
-4.  **Cross-Context Matching**: Executes multi-line regex matching throughout the body text to confirm the presence of citations.
+CURE moves beyond basic text search by using a **Smart Scoring** mechanism for accurate detection:
+1.  **Section Identification**: Automatically scans the document to find potential bibliography headers.
+2.  **Content Analysis**: Evaluates the formatting density of subsequent lines to pinpoint the exact start of the reference list.
+3.  **Feature Extraction**: Once the references are located, it extracts unique identifiers (Author surname + Publication year) for each entry.
+4.  **Contextual Verification**: Performs advanced multi-line matching within the body text to confirm if a reference is genuinely cited.
 
 ## 📝 Deliverables
 
