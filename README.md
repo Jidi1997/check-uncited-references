@@ -11,10 +11,19 @@ English | [中文版](./README.zh-CN.md)
 Version 3.0 introduces significant accuracy and stability improvements:
 - **Unicode-Aware Matching**: Precise identification of author names in multilingual (English/Chinese) environments.
 - **Improved Bibliography Parsing**: Automatic detection of bibliography boundaries to prevent false positives from appendicies or TOCs.
-- **Robustness**: Heuristic-based publication year extraction for dense-packed reference lists.
-- **Legacy Support**: The stable v2.x version is now preserved in the `legacy/` directory.
+- **Robustness**: Heuristic-based publication year extraction for dense-packed reference lists (e.g, those inserted through Word-zotero/-endonote plugins).
 
-For a detailed technical breakdown, see the **[OPTIMIZATION_LOG.md](./OPTIMIZATION_LOG.md)**.
+---
+
+## 🛠️ Technical Optimizations (v3.0)
+
+CURE v3.0 focuses on precision and robustness in complex academic environments:
+- **Unicode-Aware Boundaries**: Uses custom regex lookaheads/lookbehinds for author matching, ensuring accuracy in multilingual manuscripts without "substring collisions" (e.g., preventing "Li" from matching "policy").
+- **Smart Sectioning**: Implements multiline regex to accurately pinpoint the bibliography start, automatically truncating at the next top-level heading to protect appendicies and TOC links.
+- **Heuristic Year Correction**: Prioritizes years in parentheses or following journal markers, resolving misidentification in "packed" bibliography formats.
+- **High-Tolerance Normalization**: Features a "dehydrated" matching layer that strips non-word characters for 100% citation mapping success in diverse formatting scenarios.
+
+---
 
 ---
 
