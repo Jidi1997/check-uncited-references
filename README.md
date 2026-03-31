@@ -4,6 +4,20 @@ English | [中文版](./README.zh-CN.md)
 
 **CURE** (Check Uncited REferences) is a streamlined Python tool specifically designed for **Markdown** documents. Given that Markdown provides an inherently structured and AI-friendly format, CURE leverages this clarity to identify "ghost references"—entries that persist in a bibliography despite being omitted or removed from the main body text.
 
+---
+
+### 🌟 Latest Updates (March 2026 - v3.0)
+
+Version 3.0 introduces significant accuracy and stability improvements:
+- **Unicode-Aware Matching**: Precise identification of author names in multilingual (English/Chinese) environments.
+- **Improved Bibliography Parsing**: Automatic detection of bibliography boundaries to prevent false positives from appendicies or TOCs.
+- **Robustness**: Heuristic-based publication year extraction for dense-packed reference lists.
+- **Legacy Support**: The stable v2.x version is now preserved in the `legacy/` directory.
+
+For a detailed technical breakdown, see the **[OPTIMIZATION_LOG.md](./OPTIMIZATION_LOG.md)**.
+
+---
+
 ## ❓ Context & Motivation (Use Case)
 
 In modern research, writing often moves between different formats. While tools like Zotero excel at managing citations within Markdown or $\LaTeX$ , the back-and-forth of **collaborative editing in Microsoft Word** can easily break these links.

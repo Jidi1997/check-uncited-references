@@ -14,68 +14,95 @@ import sys
 
 def parse_reference(ref_text):
     """
-    Parses a bibliography entry line to extract its ID, publication year, and author names.
-    
-    Supports:
-    - Numbered formats: [1] Author, 2020... or 1. Author, 2020...
-    - Unnumbered formats: Author, A. (2020)... or Author, 2020...
-    
-    Args:
-        ref_text (str): The raw text line representing a bibliography entry.
-        
-    Returns:
-        dict: Containing 'id', 'year', 'authors', and 'original' text.
+    Parses a bibliography entry to extract its ID, publication year, and author names.
+    Handles multiline content where periods may follow names or initials.
     """
-    # Regex logic: Optional numeric ID [1] or 1. + space. 
-    # Uses negative lookahead (?!年) to avoid misidentifying sign-off dates as IDs.
-    match = re.match(r'^(?:\[?(\d+)\]?\.?\s+)?(?!年)(.*)', ref_text.strip())
+    match = re.match(r'^(?:\[?(\d+)\]?\.?\s+)?(?!年)(.*)', ref_text.strip(), flags=re.DOTALL)
     if not match:
         return None
         
     ref_id = match.group(1) if match.group(1) else "N/A"
-    
-    # Heuristic filter: Bibliography indices rarely exceed 2000.
     if ref_id != "N/A" and int(ref_id) > 2000:
         return None
         
     content = match.group(2)
     
-    # Extract year (supported range 19xx-20xx).
-    year_match = re.search(r'\b(19\d\d|20\d\d)\b', content)
-    year = year_match.group(1) if year_match else ""
+    # 1. Extract publication year.
+    # We look for all years, but we exclude those that appear to be part of a page range like 1985-2021.
+    # A year is usually (2024), 2024. or 2024,
+    raw_years = re.findall(r'\b(19\d\d|20\d\d)\b', content)
+    valid_years = []
+    for y in raw_years:
+        # Check if it's likely a page number (e.g., in a range 2000-2010)
+        # Avoid years that have a hyphen immediately before or after 
+        if re.search(f'\\d-{y}|{y}-\\d', content):
+            continue
+        valid_years.append(y)
+        
+    if not valid_years:
+        # Fallback to last year if no 'valid' ones found (legacy)
+        valid_years = raw_years if raw_years else []
+        
+    if not valid_years: return None
+
+    # Heuristic: Favor year in parentheses first (Chinese style: (2020)).
+    parenthesized_year = re.search(r'\((19\d\d|20\d\d)\)', content)
+    if parenthesized_year:
+        year = parenthesized_year.group(1)
+    else:
+        # For Western-style refs (Journal, Year, Vol: Page), the pub year follows
+        # a comma or period+space AFTER a [J]/[M]/[R] marker or after a journal name.
+        # Strategy: prefer the first year that appears after '[J]', '[M]', '[R]', or ', '
+        # rather than just taking the last year (which could belong to the previous merged entry).
+        post_marker_year = re.search(r'(?:\[[JMRjmr]\]|,|;)\s*(19\d\d|20\d\d)', content)
+        year = post_marker_year.group(1) if post_marker_year else valid_years[0]
     
-    # Isolate the author prefix (text preceding the year identifier).
-    authors_string = content
-    if year_match:
-        idx = year_match.start()
-        if idx > 5: 
-            authors_string = content[:idx].strip('.,( ]')
+    # 2. Extract authors.
+    year_match = re.search(re.escape(year), content)
+    year_pos = year_match.start() if year_match else len(content)
+    pre_year_content = content[:year_pos].strip(' .,([])')
     
-    # Split by standard delimiters: comma, ampersand, 'and', or Chinese enumeration mark (、)
+    # Look for the title separator. 
+    # Usually Author. Title or Author(Year)Title.
+    # If no period-space, then everything before the year is authors.
+    author_title_sep = re.search(r'(?<!\b[A-Z])\.\s+(?![a-z])', pre_year_content)
+    if author_title_sep:
+        authors_string = pre_year_content[:author_title_sep.start()].strip()
+    else:
+        # Fallback: if there's a [J], [M], [R] marker, the text before it is likely Author + Title.
+        # We need to find the split between Authors and Title. 
+        # Typically the authorship list ends with a period.
+        bracket_marker = re.search(r'\[[JMR]\]', pre_year_content)
+        if bracket_marker:
+            pre_marker = pre_year_content[:bracket_marker.start()].strip()
+            # Find the last period in pre_marker that isn't an initial.
+            split_match = list(re.finditer(r'(?<!\b[A-Z])\.', pre_marker))
+            if split_match:
+                authors_string = pre_marker[:split_match[-1].start()].strip()
+            else:
+                authors_string = pre_marker
+        else:
+            authors_string = pre_year_content
+        
+    # Split by standard delimiters: comma, ampersand, 'and', or Chinese enumeration mark
     parts = re.split(r'[,，&]| and |\u3001', authors_string)
     authors = []
     for p in parts:
         p = p.strip()
-        if not p:
-            continue
-        # Strip common initialisms (e.g., 'A.' or 'B').
-        clean_p = re.sub(r'\b[A-Z]\b\.?', '', p).strip()
-        
-        # Primary name extraction (usually the surname).
+        if not p or len(p) < 2: continue
+        # Strip common initialisms (e.g., 'A.' or 'B' or 'D-G').
+        clean_p = re.sub(r'\b[A-Z](?:-[A-Z])?\b\.?', '', p).strip()
+        # Primary name extraction (usually the surname or full Chinese name).
         name_parts = re.split(r'[\s(]', clean_p)
         if name_parts:
-            first_word = name_parts[0]
-            # Normalize: Keep alphanumeric, Chinese residues, and hyphens.
-            first_word = re.sub(r'[^\w\u4e00-\u9fa5\-]', '', first_word)
-            if first_word:
-                authors.append(first_word)
+            # Handle hyphenated surnames like 'Eduardo D-G' or 'Aragòn-Correa'
+            first_word = re.sub(r'[^\w\u00C0-\u017F\u4e00-\u9fa5\-]', '', name_parts[0])
+            if first_word: authors.append(first_word)
             
-    authors = [a for a in authors if a]
-    
     return {
-        'id': ref_id,
-        'year': year,
-        'authors': authors,
+        'id': str(ref_id).strip(),
+        'year': str(year).strip(),
+        'authors': [a.strip() for a in authors[:10] if a.strip()], # Cap to avoid title leak
         'original': ref_text.strip()
     }
 
@@ -94,13 +121,45 @@ def is_line_reference_like(line):
             return True
     
     # Pattern 2: Surname-first signature (e.g., Surname, I. or Surname, Name)
-    # Checks for: First word capitalized + comma + space + Second word capitalized.
+    # Checks for: First word capitalized + comma + space + Second word capitalized at START of line.
     if re.match(r'^[A-Z\u4e00-\u9fa5][a-zA-Z\s\-\u4e00-\u9fa5]{1,25},\s+[A-Z\u4e00-\u9fa5]', line):
         # Validation: Verify if a year exists within or in parentheses.
         if re.search(r'\b(19\d\d|20\d\d)\b', line) or re.search(r'\((19\d\d|20\d\d)\)', line):
             return True
             
     return False
+
+def extract_references_from_block(text_block):
+    """
+    Extracts individual bibliography entries from a dense/packed continuous text block.
+    """
+    # Pre-clean isolated artifacts
+    text_block = re.sub(r'\s+\d+\.\s+\n', '\n', text_block)
+    
+    # Refined Split Logic:
+    # Refined Split Logic:
+    # Aggressively split at period terminals (e.g., page 821.) followed by an Author Start.
+    # We include hyphenated names (e.g., El-Khatib) and accented characters.
+    # A name start usually has a second component (initial or word) or a comma nearby.
+    word = r'[A-Z\u00C0-\u017F\u4e00-\u9fa5][a-z\u00C0-\u017F\u4e00-\u9fa5\-]*'
+    author_header = f'{word}\\s*(?:[A-Z\u00C0-\u017F\u4e00-\u9fa5][\\w\\-]*|[,，、\\.])'
+    
+    # Using finditer to manually split on zero-width boundaries if needed
+    splits = [0]
+    for m in re.finditer(fr'(?<=\d\.)\s*(?={author_header})', text_block):
+        splits.append(m.start())
+    splits.append(len(text_block))
+    
+    segments = []
+    for i in range(len(splits)-1):
+        seg = text_block[splits[i]:splits[i+1]].strip()
+        if len(seg) > 10: segments.append(seg)
+    
+    if len(segments) <= 1:
+        # Fallback to broader split if first one fails
+        segments = re.split(r'(?<=\d\.|\]\.)\s*(?=[A-Z\u00C0-\u017F\u4e00-\u9fa5]{1,20}(?:[\s\w]*?){0,5}[,，、])', text_block)
+        
+    return [s.strip() for s in segments if len(s.strip()) > 10]
 
 def find_bibliography_split(doc_text):
     """
@@ -168,53 +227,85 @@ def main():
         sys.exit(1)
 
     # Perform intelligent section splitting
-    split_index = find_bibliography_split(doc_text)
+    # Robustly split body from references using a regex for the header (avoiding TOC links).
+    # Looks for a line starting with one or more '#' followed by whitespace and '参考文献'.
+    bib_header_pattern = re.compile(r'^\s*#{1,6}\s*参考文献', re.MULTILINE)
+    bib_match = bib_header_pattern.search(doc_text)
     
-    if split_index != -1:
+    if bib_match:
+        split_index = bib_match.start()
         searchable_text = doc_text[:split_index]
-        ref_text_block = doc_text[split_index:]
+        raw_bib_block = doc_text[split_index:]
     else:
-        # Fallback to scanning the whole document if no clear split is found.
-        searchable_text = doc_text
-        ref_text_block = ""
+        # Fallback to plain text search if no markdown header is found
+        split_index = doc_text.find("参考文献")
+        if split_index != -1:
+            searchable_text = doc_text[:split_index]
+            raw_bib_block = doc_text[split_index:]
+        else:
+            searchable_text = doc_text
+            raw_bib_block = ""
+
+    # Truncate the bibliography block at the next top-level heading that follows it
+    # (e.g., '# 作者在读期间科研成果简介'). These appendix sections must not be parsed
+    # as references, otherwise their publication-like lines cause false ghost detections.
+    next_heading_match = re.search(r'\n\s*#{1,6}\s+\S', raw_bib_block[1:])  # skip the bib header itself
+    if next_heading_match:
+        ref_text_block = raw_bib_block[:next_heading_match.start() + 1]
+    else:
+        ref_text_block = raw_bib_block
 
     parsed_refs = []
+    # Try block extraction first for dense formats
+    raw_entries = extract_references_from_block(ref_text_block)
+    
+    if len(raw_entries) > 1:
+        for entry in raw_entries:
+            data = parse_reference(entry)
+            if data and data['authors'] and data['year']:
+                parsed_refs.append(data)
+    
+    # Combined with line-based scanning to catch single entries per line correctly
     ref_lines = ref_text_block.split('\n')
     for line in ref_lines:
         line = line.strip()
         if is_line_reference_like(line):
             data = parse_reference(line)
-            if data:
-                parsed_refs.append(data)
+            if data and data['authors'] and data['year']:
+                # Deduplicate based on author+year signature
+                sig = f"{data['authors'][0]}{data['year']}"
+                if not any(f"{p['authors'][0]}{p['year']}" == sig for p in parsed_refs):
+                    parsed_refs.append(data)
                 
+    # Final Clean Search logic
+    clean_body = re.sub(r'[^\w\-\u00C0-\u017F\u4e00-\u9fa5]', ' ', searchable_text)
+    clean_body = re.sub(r'\s+', ' ', clean_body)
+    
+    # Also prepare a full document version just in case splitting was imperfect
+    full_clean_doc = re.sub(r'[^\w\-\u00C0-\u017F\u4e00-\u9fa5]', ' ', doc_text)
+    full_clean_doc = re.sub(r'\s+', ' ', full_clean_doc)
+    
     uncited_entries = []
     for ref in parsed_refs:
-        year = ref['year']
-        if not ref['authors']:
+        clean_name = re.sub(r'[^\w\-\u00C0-\u017F\u4e00-\u9fa5]', '', ref['authors'][0])
+        year_val = ref['year']
+        
+        if not clean_name or not year_val: continue
+        
+        # Simple co-occurrence in 200 chars. No strict boundaries.
+        pattern = f"{clean_name}.{{0,200}}{year_val}"
+        regex = re.compile(pattern, re.IGNORECASE | re.DOTALL)
+        
+        # Check searchable section first
+        if regex.search(clean_body):
             continue
-        
-        def get_author_pattern(author_name):
-            esc = re.escape(author_name)
-            # Use lookbehind/lookahead for alphabet rather than \b to allow adjacent Chinese characters (which Unicode considers \w)
-            if re.match(r'^[A-Za-z\u00C0-\u017F]+$', author_name):
-                return r'(?<![A-Za-z\u00C0-\u017F])' + esc + r'(?![A-Za-z\u00C0-\u017F])'
-            return esc
-
-        auth1_pattern = get_author_pattern(ref['authors'][0])
-        # Same logic for year to prevent \b acting up if '年' is attached
-        year_pattern = r'(?<![0-9])' + re.escape(year) + r'(?![0-9])'
-        
-        # Match pattern supports variations (e.g. Author et al, 2020 or Author & Author 2020).
-        if len(ref['authors']) >= 2:
-            auth2_pattern = get_author_pattern(ref['authors'][1])
-            pattern_str = f"{auth1_pattern}.{{0,50}}{auth2_pattern}.{{0,50}}{year_pattern}"
-            pattern_alt = f"{auth1_pattern}.{{0,50}}{year_pattern}"
-            regex = re.compile(f"({pattern_str})|({pattern_alt})", re.IGNORECASE | re.DOTALL)
-        else:
-            pattern_str = f"{auth1_pattern}.{{0,50}}{year_pattern}"
-            regex = re.compile(pattern_str, re.IGNORECASE | re.DOTALL)
             
-        if not regex.search(searchable_text):
+        # Fallback: check whole doc (excluding the exact original citation metadata to avoid self-match)
+        # We replace the original metadata in the doc with spaces for this check.
+        orig_clean = re.sub(r'[^\w\-\u00C0-\u017F\u4e00-\u9fa5]', ' ', ref['original'])
+        doc_without_ref = full_clean_doc.replace(orig_clean, " " * len(orig_clean))
+        
+        if not regex.search(doc_without_ref):
             uncited_entries.append(ref)
             
     # Output terminal results
